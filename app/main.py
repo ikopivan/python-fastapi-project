@@ -1,24 +1,22 @@
-from app.db.db import SessionLocal
-from app.db.crud import get_categories, get_books
+from fastapi import FastAPI
+
+from app.api import books, categories
+from app.db.db import Base, engine
 
 
-session = SessionLocal()
+Base.metadata.create_all(bind=engine)
 
-categories = get_categories(session)
-books = get_books(session)
+app = FastAPI(
+    title="Books API",
+    description="API для работы с книгами и категориями",
+    version="1.0.0"
+)
 
-print("Категории:\n")
 
-for category in categories:
-    print(f"{category.id}. {category.title}")
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
-print("\nКниги:\n")
 
-for book in books:
-    print(f"""
-ID: {book.id}
-Название: {book.title}
-Описание: {book.description}
-Цена: {book.price}
-Категория ID: {book.category_id}
-""")
+app.include_router(categories.router)
+app.include_router(books.router)
